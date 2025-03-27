@@ -261,22 +261,51 @@
         let scanning = false;
         let stream = null;
 
-        async function startScanner() {
-            scanning = true;
-            document.getElementById("statusMessage").innerText = "Scanning...";
-            document.getElementById("video-container").style.display = "block";
+        async function submitData() {
+    let mobile = document.getElementById("mobileResult").value;
+    let event = document.getElementById("eventResult").value;
+    let statusMessage = document.getElementById("statusMessage");
 
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                video.srcObject = stream;
-                video.onloadedmetadata = () => {
-                    video.play();
-                    requestAnimationFrame(scanQRCode);
-                };
-            } catch (error) {
-                alert("Error accessing the camera: " + error);
-            }
+    if (!mobile || mobile === "Not found" || !event || event === "Not found") {
+        statusMessage.innerText = "❌ Invalid scanned data. Please scan again.";
+        statusMessage.style.color = "red";
+        return;
+    }
+
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const disableOverlay = document.getElementById("disableOverlay");
+    loadingOverlay.style.display = "flex"; // Show loading overlay
+    disableOverlay.style.display = "block"; // Disable the page
+
+    console.log("📤 Sending data:", { mobile_number: mobile, event_name: event });
+
+    try {
+        let response = await fetch("/submit_qr", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mobile_number: mobile, event_name: event })
+        });
+
+        let data = await response.json();
+
+        if (data.status === "error") {
+            statusMessage.innerText = `❌ Error: ${data.message}`;
+            statusMessage.style.color = "red";
+        } else {
+            statusMessage.innerText = "✅ Data sent successfully!";
+            statusMessage.style.color = "green";
         }
+
+    } catch (error) {
+        console.error("❌ Error sending data:", error);
+        statusMessage.innerText = "❌ Error sending data. Check the console for details.";
+        statusMessage.style.color = "red";
+    } finally {
+        loadingOverlay.style.display = "none"; // Hide loading overlay
+        disableOverlay.style.display = "none"; // Enable the page
+    }
+}
+
 
         function extractEventName(qrData) {
             let eventKeywords = [
