@@ -117,11 +117,28 @@ def download_db():
 
 @app.route("/reset_db")
 def reset_db():
-    """Reset the SQLite database."""
+    """Reset the SQLite database and reinitialize default users."""
     if os.path.exists(DATABASE):
         os.remove(DATABASE)
-    init_db()
-    return jsonify({"success": True, "message": "Database reset successfully"})
+
+    init_db()  # Recreate tables
+
+    # Add default users
+    default_users = {
+        "admin": "admin@ksrct",
+        "user123": "admin123@123"
+    }
+    for i in range(1, 10):
+        default_users[f"user{i}"] = f"user{i}_pass{i*111}"
+
+    for username, password in default_users.items():
+        try:
+            add_user(username, password)
+            logging.info(f"✅ User '{username}' added successfully")
+        except sqlite3.IntegrityError:
+            logging.info(f"⚠️ User '{username}' already exists.")
+
+    return jsonify({"success": True, "message": "Database reset and users added"})
 
 # Initialize the database and add default users
 init_db()
