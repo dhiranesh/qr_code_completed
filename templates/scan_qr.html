@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #007BFF, #00D4FF);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            color: #333;
+        }
+
+        .input-container {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #video-container {
+            position: relative;
+            display: none;
+            width: 100%;
+        }
+
+        #video {
+            width: 100%;
+            border-radius: 10px;
+            border: 2px solid #007BFF;
+        }
+
+        #statusMessage {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                max-width: 450px;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        input[type="text"],
+        select {
+            width: 300px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: white;
+        }
+
+        input[type="text"]::placeholder {
+            color: #999;
+        }
+
+        select {
+            appearance: none;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        select:focus,
+        input[type="text"]:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+            color: #333;
+        }
+
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        #loadingOverlay p {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007BFF;
+        }
+
+        /* Style for the disable overlay */
+        #disableOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            display: none;
+        }
+
+        .logo {
+            width: 120px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loadingOverlay">
+        <p>Loading, please wait...</p>
+    </div>
+    <h1>QR Code Scanner</h1>
+    <div class="container">
+        <img src="static/logo1-if5MZuqt.png" alt="KSRCT Logo" class="logo">
+
+    </div>
+
+    <div class="container">
+        <div class="input-container">
+            <label>Event Name:</label>
+            <input type="text" id="eventResult" placeholder="Scanned Event Name">
+
+            <label for="eventDropdown">Select Event:</label>
+            <select id="eventDropdown">
+                <option value="" disabled selected>Select an Event</option>
+                <option value="Neuro Hackathon">Neuro Hackathon</option>
+                <option
+                    value="NATIONAL CONFERENCE ON INNOVATIONS IN SCIENCE, TECHNOLOGY, ENGINEERING, MATHEMATICS AND MEDICINE">
+                    NATIONAL CONFERENCE ON INNOVATIONS IN SCIENCE</option>
+                <option value="Paper/Project/Poster presentation">Paper/Project/Poster presentation</option>
+                <option value="Non-Technical (4-members)">Non-Technical (4-members)</option>
+                <option value="Hormonicks (Solo) Events">Hormonicks (Solo) Events</option>
+                <option value="Non-Technical (2-members)">Non-Technical (2-members)</option>
+                <option value="Non - Technical Event(solo)">Non - Technical Event(solo)</option>
+                <option value="Technical (Team)">Technical (Team)</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Technical Events(solo)">Technical Events(solo)</option>
+                <option value="Harmonicks(Beat Battle (Group Dance))">Harmonicks(Beat Battle (Group Dance))</option>
+                <option value="Flick Fest(Short Film)">Flick Fest(Short Film)</option>
+                <option value="Idea Elevator Pitching Contest">Idea Elevator Pitching Contest</option>
+
+            </select>
+
+            <script>
+                document.getElementById("eventDropdown").addEventListener("change", function () {
+                    document.getElementById("eventResult").value = this.value;
+                });
+            </script>
+
+            <div class="input-container">
+                <label>Mobile Number:</label>
+                <input type="text" id="mobileResult" placeholder="Scanned Mobile Number">
+            </div>
+
+            <button onclick="startScanner()">📷 Scan QR</button>
+            <button onclick="submitData()">📤 Submit</button>
+
+            <div id="video-container">
+                <video id="video" autoplay></video>
+                <canvas id="qr-canvas" hidden></canvas>
+            </div>
+
+            <p id="statusMessage"></p>
+        </div>
+
+        <!-- Existing content... -->
+    </div>
+
+    <!-- Add this overlay for disabling the page -->
+    <div id="disableOverlay"></div>
+
+    <script>
+        let video = document.getElementById("video");
+        let canvasElement = document.getElementById("qr-canvas");
+        let canvas = canvasElement.getContext("2d", { willReadFrequently: true });
+        let scanning = false;
+        let stream = null;
+
+        async function startScanner() {
+            scanning = true;
+            document.getElementById("statusMessage").innerText = "Scanning...";
+            document.getElementById("video-container").style.display = "block";
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
+                    requestAnimationFrame(scanQRCode);
+                };
+            } catch (error) {
+                alert("Error accessing the camera: " + error);
+            }
+        }
+
+        function extractEventName(qrData) {
+            let eventKeywords = [
+                "Neuro Hackathon", "NATIONAL CONFERENCE ON INNOVATIONS IN SCIENCE",
+                "Paper/Project/Poster presentation", "Non-Technical (4-members)",
+                "Hormonicks (Solo) Events", "Non-Technical (2-members)",
+                "Non - Technical Event(solo)", "Technical (Team)", "Workshop",
+                "Technical Events(solo)", "Harmonicks(Beat Battle (Group Dance))", "Idea Elevator Pitching Contest", "Flick Fest(Short Film)"
+            ];
+
+            for (let keyword of eventKeywords) {
+                if (qrData.includes(keyword)) {
+                    return keyword;
+                }
+            }
+            return "Not found";
+        }
+
+        function extractMobileNumber(qrData) {
+            let cleanedData = qrData.trim();
+            let mobileMatch = cleanedData.match(/\b\d{10}\b/);
+            return mobileMatch ? mobileMatch[0] : "Not found";
+        }
+
+        function scanQRCode() {
+            if (!scanning) return;
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.width = video.videoWidth;
+                canvasElement.height = video.videoHeight;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+
+                let imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                let code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+
+                if (code) {
+                    scanning = false;
+                    stopScanner();
+
+                    let eventName = extractEventName(code.data);
+                    let mobileNumber = extractMobileNumber(code.data);
+
+                    document.getElementById("eventResult").value = eventName;
+                    document.getElementById("mobileResult").value = mobileNumber;
+
+                    document.getElementById("statusMessage").innerText = "✅ QR Code Scanned Successfully!";
+                    document.getElementById("video-container").style.display = "none";
+                } else {
+                    requestAnimationFrame(scanQRCode);
+                }
+            } else {
+                requestAnimationFrame(scanQRCode);
+            }
+        }
+
+        function stopScanner() {
+            if (stream) {
+                let tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                stream = null;
+            }
+        }
+
+        async function submitData() {
+            let mobile = document.getElementById("mobileResult").value;
+            let event = document.getElementById("eventResult").value;
+
+            if (!mobile || mobile === "Not found" || !event || event === "Not found") {
+                alert("Invalid scanned data. Please scan again.");
+                return;
+            }
+
+            const loadingOverlay = document.getElementById("loadingOverlay");
+            const disableOverlay = document.getElementById("disableOverlay");
+            loadingOverlay.style.display = "flex"; // Show loading overlay
+            disableOverlay.style.display = "block"; // Disable the page
+
+            console.log("📤 Sending data:", { mobile_number: mobile, event_name: event });
+
+            try {
+                let response = await fetch("/submit_qr", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ mobile_number: mobile, event_name: event })
+                });
+
+                let data = await response.json();
+                console.log("✅ Success:", data);
+                alert("Data sent successfully!");
+
+            } catch (error) {
+                console.error("❌ Error sending data:", error);
+                alert("Error sending data. Check the console for details.");
+            } finally {
+                loadingOverlay.style.display = "none"; // Hide loading overlay
+                disableOverlay.style.display = "none"; // Enable the page
+            }
+        }
+
+        window.addEventListener("load", function () {
+            const loadingOverlay = document.getElementById("loadingOverlay");
+            loadingOverlay.style.display = "none"; // Ensure overlay is hidden on page load
+        });
+    </script>
+
+</body>
+
+</html>
