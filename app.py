@@ -200,25 +200,35 @@ def scan_qr_page():
     return render_template("scan_qr.html")
 
 def send_data(mobile, event_type):
-    """Send scanned QR data to Google Apps Script."""
+    """Send scanned QR data to Google Apps Script and check if the mobile exists."""
     data = {"mobile": mobile, "eventType": event_type}
     try:
-        logging.info(f"Sending data to Google Apps Script: {data}")
+        logging.info(f"📤 Sending data to Google Apps Script: {data}")
         response = requests.post(APPS_SCRIPT_URL, json=data)
-
-        # Log response
-        logging.info(f"Google Script Response: {response.status_code} - {response.text}")
+        
+        logging.info(f"📥 Google Script Response: {response.status_code} - {response.text}")
 
         if response.status_code == 200:
             try:
-                return response.json()
+                json_response = response.json()
+                
+                # ✅ Check if mobile number was not found
+                if not json_response.get("success", False):
+                    error_message = json_response.get("message", "Mobile number not found")
+                    logging.error(f"❌ Error: {error_message}")
+                    return {"success": False, "message": error_message}
+                
+                return json_response  # Return success response
+                
             except json.JSONDecodeError:
-                logging.error("Invalid response format from Google Apps Script")
+                logging.error("❌ Invalid response format from Google Apps Script")
                 return {"success": False, "message": "Invalid response format"}
-        logging.error(f"Error from Google Apps Script: {response.status_code}")
+        
+        logging.error(f"❌ HTTP Error from Google Apps Script: {response.status_code}")
         return {"success": False, "message": f"Error: {response.status_code}"}
+
     except requests.RequestException as e:
-        logging.error(f"Error sending data to Google Apps Script: {e}")
+        logging.error(f"❌ Network error sending data: {e}")
         return {"success": False, "message": "Network error"}
 
 @app.route("/submit_qr", methods=["POST"])
