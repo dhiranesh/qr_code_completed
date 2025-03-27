@@ -18,7 +18,7 @@ app.config["SESSION_TIMEOUT"] = 1800  # Auto logout after 30 minutes
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Google Apps Script URL (Replace with your actual deployment URL)
-APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbws6PIuvd8FRJof2ShNkuuCFcJFxQYf7Hx6n_I5_-PAL7uexA1RJcXur3Hx4QPBLoaQ/exec"
+APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyK0XJG0HBwbg1yqUHhFcAGXq6vGQiFHhDn_QS6N0048K_cG4L6voO5dWnZjEQ2jBX1/exec"
 
 # SQLite Database
 DATABASE = "attendance.db"
